@@ -1,0 +1,51 @@
+version: '3.9'
+
+services:
+  bot:
+    build: .
+    container_name: aiogram_bot
+    depends_on:
+      - postgres
+    environment:
+      DB_HOST: postgres
+      DB_PASSWORD_FILE: /run/secrets/db_password
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+    secrets:
+      - db_password
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres_container
+    environment:
+      POSTGRES_USER: user_test
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+      POSTGRES_DB: aiogram_db
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U user_test -d aiogram_db']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+    ports:
+      - '5432:5432'
+    secrets:
+      - db_password
+
+secrets:
+  db_password:
+    file: db_password.txt
+
+volumes:
+  db_data:
