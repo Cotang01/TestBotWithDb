@@ -40,16 +40,6 @@ AsyncSessionMaker = async_sessionmaker(engine,
 
 @asynccontextmanager
 async def get_db():
-    """
-    use get_db().begin() instead of decorating with db_session if multiple
-    operations in transaction needed:
-    def some_crud(...):
-        async with get_db.begin() as session:
-            await first_operation()
-            ...
-            await second_operation()
-            ...
-    """
     async with AsyncSessionMaker() as session:
         try:
             yield session
