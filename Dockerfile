@@ -6,7 +6,7 @@ RUN pip install -r requirements.txt
 
 WORKDIR /bot
 
-COPY bot.py secrets.env db_password.txt ./
+COPY bot.py commands.py routing.py secrets.env db_password.txt ./
 
 COPY db/ db/
 COPY item/ item/
