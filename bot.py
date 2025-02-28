@@ -5,33 +5,21 @@ from os import getenv
 
 from aiogram import Bot, Dispatcher
 from aiogram.filters import CommandStart, Command
-from aiogram.types import Message, BotCommand
+from aiogram.types import Message
 
-from db.engine import init_models
+from db.engine import create_models
 from item import crud as item_crud
 from keyboards.ikb import builder as ikb
 from keyboards.rkb import builder as rkb
-from handlers.ikb_handler import router as ikb_router
 
-routers = [
-    ikb_router,
-]
-
-bot_commands = [
-    BotCommand(command='/start', description='Запуск бота'),
-    BotCommand(command='/show_items', description='Показать предметы'),
-]
 
 dp = Dispatcher()
-
-for r in routers:
-    dp.include_router(r)
 
 
 @dp.message(CommandStart())
 async def command_start_handler(message: Message) -> None:
     await message.answer(
-        f"Hello, {message.from_user.full_name}!",
+        f"Hello!",
         reply_markup=rkb.as_markup(resize_keyboard=True))
 
 
@@ -53,10 +41,28 @@ async def create_item(message: Message) -> None:
         reply_markup=ikb.as_markup())
 
 
+async def on_startup(bot: Bot):
+    await create_models()
+    # await bot.send_message(ADMIN_ID, 'Bot has been started.')
+    print('Started')
+
+
+async def on_shutdown(bot: Bot):
+    # await delete_models()
+    # await bot.send_message(ADMIN_ID, 'Bot has been shut down.')
+    print('Stopped')
+
+
 async def main() -> None:
+    from routing import r_
+    from commands import base_commands
+
+    dp.include_router(r_)
+    dp.startup.register(on_startup)
+    dp.shutdown.register(on_shutdown)
     bot = Bot(token=getenv('TOKEN'))
-    await bot.set_my_commands(bot_commands)
-    await init_models()
+
+    await bot.set_my_commands(base_commands)
     await dp.start_polling(bot)
 
 

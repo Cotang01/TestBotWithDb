@@ -58,8 +58,13 @@ def db_session(func):
     return wrapper
 
 
-async def init_models():
+async def create_models():
     async with engine.begin() as conn:
-        # await conn.run_sync(Base.metadata.drop_all)  # rm if drop not needed
         await conn.run_sync(Base.metadata.create_all)
+    await engine.dispose()
+
+
+async def delete_models():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
     await engine.dispose()
